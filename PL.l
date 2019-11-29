@@ -1,11 +1,11 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h> 
+#include <string.h>
 #include "PL.h"
-#include "y.tab.h"	
+#include "y.tab.h"
 
-extern void yyerror(const char *);  
+extern void yyerror(const char *);
 %}
 %option yylineno
 
@@ -17,7 +17,7 @@ Identifier {Letter}({Letter}|{Digit})*
 Integer {Digit}+
 Float {Integer}+\.{Integer}+
 Delimiter [-()<>=+*/:;,.]
-Whitespace [ \t\n]+	
+Whitespace [ \t\n]+
 
 %%
 "int"		    { yylval.str = strdup(yytext); return INT;}
@@ -54,7 +54,7 @@ Whitespace [ \t\n]+
 .               yyerror("Undefined character");
 %%
 
-int yywrap(void)      
+int yywrap(void)
 {
-    return 1;          
+    return 1;
 }
