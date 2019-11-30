@@ -4,6 +4,9 @@
     #include <string.h>
     #include "PL.h"
 
+    int yylex();
+    void yyerror(const char *s);
+    void yyerror(const char *s, char* name_);
     func* initFunction(char* name);
     func* findFunction(char* name);
     void addFunction(func* function);
@@ -18,13 +21,24 @@
     int paramCount = 0;
     func* myFunc = NULL;
     int errorCount = 0;
+    extern FILE * yyin;
+    extern int yylineno;
 %}
+
+%union {
+  char* str;
+  int   int_value;
+  double  float_value;
+  var* varPtr;
+  func* function;
+  varEnum varType;
+}
 
 %token <str> ID
 %token <int_value> INTEGERNUM
 %token <float_value> FLOATNUM
 %token INT FLOAT
-%token MAINPROG FUNCTION PROCEDURE BEGIN END IF THEN ELSE NOP WHILE RETURN PRINT IN
+%token MAINPROG FUNCTION PROCEDURE _BEGIN END IF THEN ELSE NOP WHILE RETURN PRINT IN
 %token GE LE EQ NE NOT // >= <= == != !
 %token LSBRACKET RSBRACKET // [ ]
 
@@ -51,13 +65,53 @@ standard_type: INT {$$ = intType;} | FLOAT {$$ = floatType;};
 subprogram_declarations: subprogram_declaration subprogram_declarations | ;
 subprogram_declaration: subprogram_head declarations compound_statement | error declarations compound_statement;
 subprogram_head: FUNCTION ID {if(findFunction($2) != NULL) {yyerror("Already declared function error occured"); YYERROR;} else {func* temp = initFunction($2); addFunction(temp);}}
-arguments ':' standard_type ';' {curFunc->returnType = $5;} | PROCEDURE ID arguments ';' {$$ = initFunction($2); $$->returnType = voidType; addFunction($$);}
+arguments ':' standard_type ';' {curFunc->returnType = $6;} | PROCEDURE ID arguments ';' {$$ = initFunction($2); $$->returnType = voidType; addFunction($$);}
 arguments: '(' parameter_list ')' {$$ = $2;} | ;
+
+parameter_list : identifier_list ':' type {addParam(curFunc, $3);};
+
+compound_statement: _BEGIN statement_list END;
+
+statement: variable '=' expression ;
+
+statement_list: statement
+              | statement ',' statement_list;
+
+variable: ID {$$ = $1;} ;
+
+print_statement: PRINT {printf("\n");};
+
+expression: simple_expression
+          | simple_expression relop simple_expression;
+
+simple_expression: term {$$ = $1;}
+                 | term addop simple_expression;
+
+term: factor {$$ = $1;} ;
+    | factor multop factor ;
+
+factor: INTEGERNUM {$$ = $1;};
+      | FLOATNUM {$$ = $1;};
+
+sign: '+' {$$ = '+';}
+   | '-' {$$ = '-';} ;
+
+relop: '>' {$$ = '>';}
+    | GE {$$ = GE;}
+    | '<' {$$ = '<';}
+    | LE {$$ = LE;}
+    | EQ {$$ = EQ;}
+    | NE {$$ = NE;} ;
+
+addop: '+' {$$ = '+';}
+    | '-' {$$ = '-';} ;
+
+multop: '*' {$$ = '*';}
+    | '/' {$$ = '/';} ;
+
 %%
 
-main(argc, argv)
-int argc;
-char** argv;
+int main(int argc, char ** argv)
 {
   FILE *file;
   file = fopen(argv[1],"r");
@@ -78,7 +132,7 @@ char** argv;
 }
 void yyerror(const char *s) {
   errorCount++;
-  fprintf(stderr, "- %s at line: %d, near token: ", s, yylineno)
+  fprintf(stderr, "- %s at line: %d, near token: ", s, yylineno);
   print_tok();
 }
 void yyerror(const char *s, char* name_) {
@@ -96,7 +150,8 @@ void print_tok() {
 }
 func* initFunction(char* name) {
   func* function;
-  if((function = malloc(sizeof(func))) == NULL) yyerror("Out of Memory");
+  function = (func*)malloc(sizeof(func));
+  if(function == NULL) yyerror("Out of Memory");
   function->name = strdup(name);
   function->paramCount = 0;
   function->previous = NULL;
@@ -104,7 +159,7 @@ func* initFunction(char* name) {
 }
 
 void addParam(func* function, varEnum Param) {
-  if (function-> = 50) function->parameter[function->paramCount++] = Param;
+  if (function->paramCount < 50) function->parameter[function->paramCount++] = Param;
 }
 
 void addFunction (func* function) {
@@ -122,7 +177,7 @@ void deleteFunc() {
   }
 }
 
-void findFunction (char* name) {
+func* findFunction (char* name) {
   func* temp = funcList;
   while(temp!=NULL) {
     if (strcmp(temp->name,name) == 0) return temp;

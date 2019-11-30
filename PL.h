@@ -7,3 +7,17 @@ typedef struct Func {
   int paramCount;
   struct Func* previous;
 } func;
+
+typedef struct Var { 
+	varEnum type;
+	char* name;
+	int setCount; 
+	int scopeLevel;
+	func* masterFunc;
+	struct Var* previous;
+	struct Var* next;
+	union {
+		int int_value;
+		double float_value;
+	};
+} var;
