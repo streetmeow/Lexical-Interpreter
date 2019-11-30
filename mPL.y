@@ -2,24 +2,64 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
-    #include "PL.h"
+    //#include "mPL.h"
+
+    typedef enum VarEnum {
+      intType, 
+      floatType, 
+      voidType, 
+      arrayIntType, 
+      arrayFloatType
+    } varEnum;
+
+    typedef struct Func {
+      char* name;
+      varEnum returnType;
+      varEnum parameter[50];
+      int paramCount;
+      struct Func* previous;
+    } func;
+
+    typedef struct Var {
+      varEnum type;
+      char* name;
+      int setCount;
+      int scopeLevel;
+      func* masterFunc; 
+      struct Var* previous;
+      struct Var* next;
+      union {
+        int int_value;
+        double float_value;
+      };
+    } var;
 
     int yylex();
-    void yyerror(const char *s);
+    void yyerror(const char *s); 
     func* initFunction(char* name);
     func* findFunction(char* name);
     void addFunction(func* function);
     void deleteFunc();
     void addParam(func* function, varEnum param);
-
     void print_tok();
+    var* searchVar(char* _name);
+    void setInt(var* varPtr,  int num);
+    int getInt(var* varPtr);
+    void setFloat(var* varPtr, double num);
+    float getFloat(var* varPtr);
+    void yyerror_variable(const char *s, char* _name);
 
+
+    int varCount = 0;
+	  var* front = NULL;
+	  var* rear = NULL;
     func* curFunc = NULL;
     func* funcList = NULL;
     varEnum parameter[50];
     int paramCount = 0;
-    func* myFunc = NULL;
+	  int scopeLevel = 0;
     int errorCount = 0;
+	  func* myFunc = NULL;
     extern FILE * yyin;
     extern int yylineno;
 %}
@@ -37,7 +77,7 @@
 %token <int_value> INTEGERNUM
 %token <float_value> FLOATNUM
 %token INT FLOAT
-%token MAINPROG FUNCTION PROCEDURE _BEGIN END IF THEN ELSE NOP WHILE RETURN PRINT IN
+%token MAINPROG FUNCTION PROCEDURE _BEGIN END IF THEN ELSE NOP WHILE RETURN PRINT IN FOR ELIF
 %token GE LE EQ NE NOT // >= <= == != !
 %token LSBRACKET RSBRACKET // [ ]
 
@@ -54,48 +94,57 @@
 %type <str> variable identifier_list
 
 %%
+
 program: MAINPROG ID ';' declarations subprogram_declarations compound_statement 
        | error ';' declarations subprogram_declarations compound_statement 
        | MAINPROG ID ';' error subprogram_declarations compound_statement 
        | MAINPROG ID ';' declarations error compound_statement 
        | MAINPROG ID ';' declarations subprogram_declarations error
        ;
+
 declarations: type identifier_list ';' declarations 
             | 
             ;
+
 identifier_list: ID 
                | ID ';' identifier_list
                ;
+
 type: standard_type {$$ = $1;} 
     | standard_type LSBRACKET INTEGERNUM RSBRACKET {if($1==intType) {$$ = arrayIntType;} else {$$ = arrayFloatType;}}
     ;
+
 standard_type: INT {$$ = intType;} 
              | FLOAT {$$ = floatType;}
              ;
+
 subprogram_declarations: subprogram_declaration subprogram_declarations 
                        | 
                        ;
+
 subprogram_declaration: subprogram_head declarations compound_statement 
                       | error declarations compound_statement
                       ;
-subprogram_head: FUNCTION ID //push down?
+
+subprogram_head: FUNCTION ID arguments ':' standard_type ';' 
                   {
                     if(findFunction($2) != NULL) {yyerror("Already declared function error occured"); YYERROR;} 
                     else {func* temp = initFunction($2); addFunction(temp);}
-                  }
-                 arguments ':' standard_type ';' {curFunc->returnType = $5;} 
+                    curFunc->returnType = $5;
+                  } 
                | PROCEDURE ID arguments ';' {$$ = initFunction($2); $$->returnType = voidType; addFunction($$);}
                ;
+
+parameter_list: identifier_list ':' type {addParam(curFunc, $3);}
+              | identifier_list ':' type {addParam(curFunc, $3);} ';' parameter_list
+              ;
+
 arguments: '(' parameter_list ')' {$$ = $2;} 
          | 
          ;
 
-parameter_list: identifier_list ':' type {addParam(curFunc, $3);}
-              ;
-
-compound_statement: _BEGIN statement_list END;
-
-//statement: variable '=' expression ;
+compound_statement: _BEGIN statement_list END
+                  ;              
 
 statement_list: statement 
 			        | statement ';' statement_list
@@ -116,32 +165,53 @@ statement: variable '=' expression
 if_statement: IF expression ':' statement elif_statement
             | IF expression ':' statement elif_statement ELSE ':' expression
             ;
+
 elif_statement: ELIF expression ':' statement elif_statement
               |
               ; 
+
 while_statement: WHILE expression ':' statement
                | WHILE expression ':' statement ELSE ':' statement
                ;
+
 for_statement: FOR expression IN expression ':' statement
              | FOR expression IN expression ':' statement ELSE ':' statement
              ;
 
-variable: ID {$$ = $1;} ;
+//print_statement: PRINT {printf("\n");};
+print_statement: PRINT
+               | PRINT '(' expression ')'
+               ;
 
-print_statement: PRINT {printf("\n");};
+variable: ID {$$ = $1;}
+        | ID LSBRACKET expression RSBRACKET
+        ;
+
+procedure_statement: ID '(' actual_parameter_expression ')'
+                  ;            
+
+actual_parameter_expression: expression_list
+                           |
+                           ;
+
+expression_list: expression
+               | expression ',' expression_list
+               ;
 
 expression: simple_expression
-          | simple_expression relop simple_expression;
+          | simple_expression relop simple_expression
+          ;
 
 simple_expression: term {$$ = $1;}
-                 | term addop simple_expression;
+                 | term addop simple_expression {$$ = $1;}
+                 ;
 
 term: factor {$$ = $1;} ;
     | factor multop factor 
     ;
 
-factor: INTEGER_NUM {$$ = $1;}
-	    | FLOAT_NUM {$$ = $1;}				
+factor: INTEGERNUM {$$ = $1;}
+	    | FLOATNUM {$$ = $1;}				
 	    | variable
         { 
           var* v = searchVar($1);
@@ -251,4 +321,70 @@ func* findFunction (char* name) {
     else temp=temp->previous;
   }
   return NULL;
+}
+var* searchVar(char* _name)
+{
+	var* curr = front;
+	char isOutofScopeRange = 0;
+	while(curr != NULL)
+	{	
+		if(!(strcmp(curr->name,_name)) )
+		{
+			 if(curr->masterFunc == NULL)         return curr;
+			 if(curr->masterFunc == myFunc)  return curr;
+			 else isOutofScopeRange = 1;
+		}
+		curr = curr->next; 
+	}
+
+	if(isOutofScopeRange)yyerror_variable("Out of scope range" , _name);
+  else yyerror_variable("Undefined Variable" , _name);
+	return NULL;
+}
+
+void setInt(var* varPtr,  int num)
+{
+	varPtr->setCount++;
+	varPtr->int_value=num;
+}
+
+int getInt(var* varPtr) 
+{
+	if(varPtr->setCount)
+	{
+	return varPtr->int_value;
+	}
+	else
+	{
+	yyerror_variable("Uninitialized variable" , varPtr->name);
+	return 0;
+	}
+}
+
+void setFloat(var* varPtr, double num)
+{
+	varPtr->setCount++;
+	varPtr->float_value=num;
+}
+
+float getFloat(var* varPtr)
+{
+	if(varPtr->setCount)
+	{
+	return varPtr->float_value;
+	}
+	else
+	{
+		yyerror_variable("Uninitialized variable" , varPtr->name);
+
+		return 0;
+	}
+}
+
+
+void yyerror_variable(const char *s, char* _name)
+{
+	errorCount++;
+	fprintf(stderr, "*** %s : %s at line: %d, near a Token: ", s,_name, yylineno);
+	print_tok();
 }
