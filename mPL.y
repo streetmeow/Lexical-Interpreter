@@ -52,7 +52,6 @@
 
     int varCount = 0;
 	  var* front = NULL;
-	  var* rear = NULL;
     func* curFunc = NULL;
     func* funcList = NULL;
     varEnum parameter[50];
@@ -102,12 +101,49 @@ program: MAINPROG ID ';' declarations subprogram_declarations compound_statement
        | MAINPROG ID ';' declarations subprogram_declarations error
        ;
 
-declarations: type identifier_list ';' declarations 
-            | 
-            ;
+declarations: type identifier_list ';' declerations
+            {
+            if(searchVar($2) == NULL)
+            {
+                var * newVal = (var*)malloc(sizeof(var));
+                newVal->name = $2;
+                if (front == NULL) {
+                  front = (var*)malloc(sizeof(var));
+                  front->next = newVal;
+                  front->name = "";
+                }
+                else {
+                  var * curr = front;
+                  while(curr->next != NULL)
+                    curr = curr->next;
+                  curr->next = newVal;
+                }
+
+                if($1==intType)
+                {
+                  newVal->type = intType;
+                }else if($1==floatType)
+                {
+                  newVal->type = floatType;
+                }else if($1==arrayIntType)
+                {
+                  newVal->type = arrayIntType;
+                }else if($1== arrayFloatType)
+                {
+                  newVal->type = arrayFloatType;
+                }
+                else
+                {
+                 free(newVal);
+                 yyerror("Undefined type");    
+                }
+            } else {
+              yyerror("Already Exist");
+            }
+          } ;
 
 identifier_list: ID 
-               | ID ';' identifier_list
+               | ID ',' identifier_list
                ;
 
 type: standard_type {$$ = $1;} 
@@ -147,11 +183,20 @@ compound_statement: _BEGIN statement_list END
                   ;              
 
 statement_list: statement 
-			        | statement ';' statement_list
-			        | error ';' statement_list
+			        | statement statement_list
+			        | error statement_list
 			        ;
               
-statement: variable '=' expression
+statement: variable '=' expression 
+         {
+           var* temp; 
+           temp = searchVar($1);
+           if (temp != NULL) {
+             temp->int_value = $3;
+           } else {
+             yyerror("undefined variable");
+           }
+         }
          | print_statement
          | procedure_statement
          | compound_statement
@@ -179,9 +224,27 @@ for_statement: FOR expression IN expression ':' statement
              ;
 
 //print_statement: PRINT {printf("\n");};
-print_statement: PRINT
-               | PRINT '(' expression ')'
-               ;
+print_statement: PRINT 
+               {
+                 printf("\n");
+               }
+               | PRINT '(' expression ')' 
+               {
+                 printf("%f\n", $3);
+               }
+               | PRINT '(' variable ')' 
+               {
+                 var* temp; 
+                 if ((temp = searchVar($3)) != NULL) {
+                   if (temp->type == intType) {
+                     printf("%d\n", temp->int_value);
+                   } else if (temp->type == floatType) {
+                     printf("%f\n", temp->float_value);
+                   } 
+                 } else {
+                   yyerror("undefined variable");
+                 }
+               } ;
 
 variable: ID {$$ = $1;}
         | ID LSBRACKET expression RSBRACKET
@@ -200,14 +263,58 @@ expression_list: expression
 
 expression: simple_expression
           | simple_expression relop simple_expression
+          {
+            if ($2 == '<') {
+              $$ = $1 < $3;
+            } 
+            else if ($2 == '<=') {
+              $$ = $1 <= $3; 
+            }
+            else if ($2 == '>') {
+              $$ = $1 > $3;
+            }
+            else if ($2 == '>=') {
+              $$ = $1 >= $3;
+            }
+            else if ($2 == '==') {
+              $$ = $1 == $3;
+            }
+            else if ($2 == '!=') {
+              $$ = $1 != $3; 
+            }
+          }
           ;
 
 simple_expression: term {$$ = $1;}
-                 | term addop simple_expression {$$ = $1;}
+                 | term addop simple_expression 
+                 { 
+                   if($2 == '+')
+                     $$ = $1 + $3; 
+                   else 
+                     $$ = $1 - $3;
+                 }
+                 | '(' simple_expression ')'
+                 { 
+                   $$ = $2;
+                 }
                  ;
 
 term: factor {$$ = $1;} ;
-    | factor multop factor 
+    | factor multop term
+    {
+      if($2 == '*') {
+        $$ = $1 * $3;
+      } else {
+        if ($3 == 0)
+          yyerror("zero division error\n");
+        else
+          $$ = $1 / $3;
+      }
+    }
+    | '(' term ')'
+    {
+      $$ = $2;
+    }
     ;
 
 factor: INTEGERNUM {$$ = $1;}
@@ -338,8 +445,7 @@ var* searchVar(char* _name)
 	}
 
 	if(isOutofScopeRange)yyerror_variable("Out of scope range" , _name);
-  else yyerror_variable("Undefined Variable" , _name);
-	return NULL;
+  else return NULL;
 }
 
 void setInt(var* varPtr,  int num)

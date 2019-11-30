@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "mPL.h"
-#include "y.tab.h"
+#include "mPL.tab.h"
 
 extern void yyerror(const char *);
 %}

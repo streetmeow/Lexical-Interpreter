@@ -16,8 +16,6 @@ typedef struct Var {
 	func* masterFunc;
 	struct Var* previous;
 	struct Var* next;
-	union {
-		int int_value;
-		double float_value;
-	};
+	int int_value;
+	double float_value;
 } var;
