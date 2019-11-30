@@ -6,7 +6,6 @@
 
     int yylex();
     void yyerror(const char *s);
-    void yyerror(const char *s, char* name_);
     func* initFunction(char* name);
     func* findFunction(char* name);
     void addFunction(func* function);
@@ -133,11 +132,6 @@ int main(int argc, char ** argv)
 void yyerror(const char *s) {
   errorCount++;
   fprintf(stderr, "- %s at line: %d, near token: ", s, yylineno);
-  print_tok();
-}
-void yyerror(const char *s, char* name_) {
-  errorCount++;
-  fprintf(stderr, "- %s : %s at line: %d, near token: ", s, name_, yylineno);
   print_tok();
 }
 
