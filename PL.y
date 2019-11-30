@@ -71,10 +71,36 @@ parameter_list : identifier_list ':' type {addParam(curFunc, $3);};
 
 compound_statement: _BEGIN statement_list END;
 
-statement: variable '=' expression ;
+//statement: variable '=' expression ;
 
-statement_list: statement
-              | statement ',' statement_list;
+statement_list: statement 
+			        | statement ';' statement_list
+			        | error ';' statement_list
+			        ;
+              
+statement: variable '=' expression
+         | print_statement
+         | procedure_statement
+         | compound_statement
+         | if_statement
+         | while_statement
+         | for_statement
+         | RETURN expression
+         | NOP
+         ;
+         
+if_statement: IF expression ':' statement elif_statement
+            | IF expression ':' statement elif_statement ELSE ':' expression
+            ;
+elif_statement: ELIF expression ':' statement elif_statement
+              |
+              ; 
+while_statement: WHILE expression ':' statement
+               | WHILE expression ':' statement ELSE ':' statement
+               ;
+for_statement: FOR expression IN expression ':' statement
+             | FOR expression IN expression ':' statement ELSE ':' statement
+             ;
 
 variable: ID {$$ = $1;} ;
 
@@ -87,26 +113,49 @@ simple_expression: term {$$ = $1;}
                  | term addop simple_expression;
 
 term: factor {$$ = $1;} ;
-    | factor multop factor ;
+    | factor multop factor 
+    ;
 
-factor: INTEGERNUM {$$ = $1;};
-      | FLOATNUM {$$ = $1;};
+factor: INTEGER_NUM {$$ = $1;}
+	    | FLOAT_NUM {$$ = $1;}				
+	    | variable
+        { 
+          var* v = searchVar($1);
+          if(v != NULL)
+          {
+            switch(v->type) //typeCheck
+            {
+              case intType: $$ = getInt(v);
+              break;
+              case floatType: $$ = getFloat(v);
+              break;
+            }
+          }
+        }
+	    | procedure_statement
+	    | NOT factor  {$$ = $2;}	
+	    | sign factor {$$ = $2;}	
+	    ;
 
 sign: '+' {$$ = '+';}
-   | '-' {$$ = '-';} ;
+	  | '-' {$$ = '-';}
+	  ;
 
 relop: '>' {$$ = '>';}
-    | GE {$$ = GE;}
-    | '<' {$$ = '<';}
-    | LE {$$ = LE;}
-    | EQ {$$ = EQ;}
-    | NE {$$ = NE;} ;
+	   | GE  {$$ = GE; }
+	   | '<' {$$ = '<';}
+	   | LE  {$$ = LE; }
+	   | EQ  {$$ = EQ; }
+	   | NE  {$$ = NE; }
+	   ;
 
 addop: '+' {$$ = '+';}
-    | '-' {$$ = '-';} ;
+	   | '-' {$$ = '-';}
+	   ;
 
 multop: '*' {$$ = '*';}
-    | '/' {$$ = '/';} ;
+	    | '/' {$$ = '/';}
+	    ;
 
 %%
 
