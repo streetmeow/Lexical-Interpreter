@@ -54,20 +54,44 @@
 %type <str> variable identifier_list
 
 %%
-program: MAINPROG ID ';' declarations subprogram_declarations compound_statement | error ';' declarations subprogram_declarations compound_statement |
-MAINPROG ID ';' error subprogram_declarations compound_statement | MAINPROG ID ';' declarations error compound_statement | MAINPROG ID ';' declarations subprogram_declarations error;
+program: MAINPROG ID ';' declarations subprogram_declarations compound_statement 
+       | error ';' declarations subprogram_declarations compound_statement 
+       | MAINPROG ID ';' error subprogram_declarations compound_statement 
+       | MAINPROG ID ';' declarations error compound_statement 
+       | MAINPROG ID ';' declarations subprogram_declarations error
+       ;
+declarations: type identifier_list ';' declarations 
+            | 
+            ;
+identifier_list: ID 
+               | ID ';' identifier_list
+               ;
+type: standard_type {$$ = $1;} 
+    | standard_type LSBRACKET INTEGERNUM RSBRACKET {if($1==intType) {$$ = arrayIntType;} else {$$ = arrayFloatType;}}
+    ;
+standard_type: INT {$$ = intType;} 
+             | FLOAT {$$ = floatType;}
+             ;
+subprogram_declarations: subprogram_declaration subprogram_declarations 
+                       | 
+                       ;
+subprogram_declaration: subprogram_head declarations compound_statement 
+                      | error declarations compound_statement
+                      ;
+subprogram_head: FUNCTION ID //push down?
+                  {
+                    if(findFunction($2) != NULL) {yyerror("Already declared function error occured"); YYERROR;} 
+                    else {func* temp = initFunction($2); addFunction(temp);}
+                  }
+                 arguments ':' standard_type ';' {curFunc->returnType = $5;} 
+               | PROCEDURE ID arguments ';' {$$ = initFunction($2); $$->returnType = voidType; addFunction($$);}
+               ;
+arguments: '(' parameter_list ')' {$$ = $2;} 
+         | 
+         ;
 
-declarations: type identifier_list ';' declarations | ;
-identifier_list: ID | ID ';' identifier_list;
-type: standard_type {$$ = $1;} | standard_type LSBRACKET INTEGERNUM RSBRACKET {if($1==intType) {$$ = arrayIntType;} else {$$ = arrayFloatType;}};
-standard_type: INT {$$ = intType;} | FLOAT {$$ = floatType;};
-subprogram_declarations: subprogram_declaration subprogram_declarations | ;
-subprogram_declaration: subprogram_head declarations compound_statement | error declarations compound_statement;
-subprogram_head: FUNCTION ID {if(findFunction($2) != NULL) {yyerror("Already declared function error occured"); YYERROR;} else {func* temp = initFunction($2); addFunction(temp);}}
-arguments ':' standard_type ';' {curFunc->returnType = $6;} | PROCEDURE ID arguments ';' {$$ = initFunction($2); $$->returnType = voidType; addFunction($$);}
-arguments: '(' parameter_list ')' {$$ = $2;} | ;
-
-parameter_list : identifier_list ':' type {addParam(curFunc, $3);};
+parameter_list: identifier_list ':' type {addParam(curFunc, $3);}
+              ;
 
 compound_statement: _BEGIN statement_list END;
 
