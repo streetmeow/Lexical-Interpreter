@@ -102,7 +102,7 @@ program: MAINPROG ID ';' declarations subprogram_declarations compound_statement
        | MAINPROG ID ';' declarations subprogram_declarations error
        ;
 
-declarations: type identifier_list ';' declerations
+declarations: type identifier_list ';' declarations
             {
             if(searchVar($2) == NULL)
             {
@@ -141,7 +141,8 @@ declarations: type identifier_list ';' declerations
             } else {
               yyerror("Already Exist");
             }
-          } ;
+          } 
+          | ;
 
 identifier_list: ID
                | ID ',' identifier_list
@@ -190,10 +191,10 @@ statement_list: statement
 
 statement: variable '=' expression
          {
-           var* temp;
-           temp = searchVar($1);
-           if (temp != NULL) {
-             if (temp->type == int type) {
+           var* v;
+           v = searchVar($1);
+           if (v != NULL) {
+             if (v->type == intType) {
                if (checkFloat($3)==false) {
                  setInt(v,(int)$3);
                }
@@ -201,7 +202,7 @@ statement: variable '=' expression
                  yyerror_variable("Variable Type error", v->name);
                }
              }
-             else if(temp->type == floatType) {
+             else if(v->type == floatType) {
                setFloat(v,$3);
              } else {
                yyerror_variable("Array type not defined",v->name);
