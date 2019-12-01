@@ -164,22 +164,23 @@ subprogram_declaration: subprogram_head declarations compound_statement
                       | error declarations compound_statement
                       ;
 
-subprogram_head: FUNCTION ID arguments ':' standard_type ';'
-                  {
-                    if(findFunction($2) != NULL) {yyerror("Already declared function error occured"); YYERROR;}
-                    else {func* temp = initFunction($2); addFunction(temp);}
-                    curFunc->returnType = $5;
-                  }
+subprogram_head: FUNCTION ID 
+               { 
+                 if(findFunction($2) != NULL) {yyerror("Already declared function error occured"); YYERROR;}
+                 else {func* temp = initFunction($2); addFunction(temp);} 
+               } 
+                 arguments ':' standard_type ';' {curFunc->returnType = $6;}
                | PROCEDURE ID arguments ';' {$$ = initFunction($2); $$->returnType = voidType; addFunction($$);}
+               |
                ;
-
-parameter_list: identifier_list ':' type {addParam(curFunc, $3);}
-              | identifier_list ':' type {addParam(curFunc, $3);} ';' parameter_list
-              ;
 
 arguments: '(' parameter_list ')' {$$ = $2;}
          |
          ;
+
+parameter_list: identifier_list ':' type {addParam(curFunc, $3);}
+              | identifier_list ':' type {addParam(curFunc, $3);} ';' parameter_list
+              ;
 
 compound_statement: _BEGIN statement_list END
                   ;
