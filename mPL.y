@@ -141,7 +141,7 @@ declarations: type identifier_list ';' declarations
             } else {
               yyerror("Already Exist");
             }
-          } 
+          }
           | ;
 
 identifier_list: ID
@@ -185,8 +185,8 @@ compound_statement: _BEGIN statement_list END
                   ;
 
 statement_list: statement
-			        | statement statement_list
-			        | error statement_list
+			        | statement ';' statement_list
+			        | error ';' statement_list
 			        ;
 
 statement: variable '=' expression
