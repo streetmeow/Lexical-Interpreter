@@ -20,35 +20,34 @@ Delimiter [-()<>=+*/:;,.]
 Whitespace [ \t\n]+
 
 %%
-"int"		    { printf("%s\n",yytext); yylval.str = strdup(yytext); return INT;            }
-"float"	    	{ printf("%s\n",yytext); yylval.str = strdup(yytext); return FLOAT;          }
-">="	    	{ printf("%s\n",yytext); yylval.str = strdup(yytext); return GE;             }
-"<="	    	{ printf("%s\n",yytext); yylval.str = strdup(yytext); return LE;             }
-"=="	    	{ printf("%s\n",yytext); yylval.str = strdup(yytext); return EQ;             }
-"!="	    	{ printf("%s\n",yytext); yylval.str = strdup(yytext); return NE;             }
-"!"		    	{ printf("%s\n",yytext); yylval.str = strdup(yytext); return NOT;            }      
-"mainprog"  	{ printf("%s\n",yytext); yylval.str = strdup(yytext); return MAINPROG;       }
-"function"  	{ printf("%s\n",yytext); yylval.str = strdup(yytext); return FUNCTION;       }
-"procedure"  	{ printf("%s\n",yytext); yylval.str = strdup(yytext); return PROCEDURE;      }
-"begin" 		{ printf("%s\n",yytext); yylval.str = strdup(yytext); return _BEGIN;         }
-"end"	    	{ printf("%s\n",yytext); yylval.str = strdup(yytext); return END;            }
-"if"		    { printf("%s\n",yytext); yylval.str = strdup(yytext); return IF;             }
-"then"	     	{ printf("%s\n",yytext); yylval.str = strdup(yytext); return THEN;           }
-"else"	     	{ printf("%s\n",yytext); yylval.str = strdup(yytext); return ELSE;           }
-"nop"	     	{ printf("%s\n",yytext); yylval.str = strdup(yytext); return NOP;            }
-"while"	    	{ printf("%s\n",yytext); yylval.str = strdup(yytext); return WHILE;          }
-"return"    	{ printf("%s\n",yytext); yylval.str = strdup(yytext); return RETURN;         }
-"print"	    	{ printf("%s\n",yytext); yylval.str = strdup(yytext); return PRINT;          }
-"in"            { printf("%s\n",yytext); yylval.str = strdup(yytext); return IN;             }
-"for"           { printf("%s\n",yytext); yylval.str = strdup(yytext); return FOR;            }
-"elif"          { printf("%s\n",yytext); yylval.str = strdup(yytext); return ELIF;           }
-"["		    	{ printf("%s\n",yytext); yylval.str = strdup(yytext); return LSBRACKET;      }
-"]"		     	{ printf("%s\n",yytext); yylval.str = strdup(yytext); return RSBRACKET;      }
+"int"		    { printf("int        : %s\n",yytext); yylval.str = strdup(yytext); return INT;            }
+"float"	    	{ printf("float      : %s\n",yytext); yylval.str = strdup(yytext); return FLOAT;          }
+">="	    	{ printf(">=         : %s\n",yytext); yylval.str = strdup(yytext); return GE;             }
+"<="	    	{ printf("<=         : %s\n",yytext); yylval.str = strdup(yytext); return LE;             }
+"=="	    	{ printf("==         : %s\n",yytext); yylval.str = strdup(yytext); return EQ;             }
+"!="	    	{ printf("!=         : %s\n",yytext); yylval.str = strdup(yytext); return NEQ;            }
+"!"		    	{ printf("!          : %s\n",yytext); yylval.str = strdup(yytext); return NOT;            }      
+"mainprog"  	{ printf("mainprog   : %s\n",yytext); yylval.str = strdup(yytext); return MAINPROG;       }
+"function"  	{ printf("function   : %s\n",yytext); yylval.str = strdup(yytext); return FUNCTION;       }
+"procedure"  	{ printf("procedure  : %s\n",yytext); yylval.str = strdup(yytext); return PROCEDURE;      }
+"begin" 		{ printf("begin      : %s\n",yytext); yylval.str = strdup(yytext); return _BEGIN;         }
+"end"	    	{ printf("end        : %s\n",yytext); yylval.str = strdup(yytext); return END;            }
+"if"		    { printf("if         : %s\n",yytext); yylval.str = strdup(yytext); return IF;             }
+"elif"          { printf("elif       : %s\n",yytext); yylval.str = strdup(yytext); return ELIF;           }
+"else"	     	{ printf("else       : %s\n",yytext); yylval.str = strdup(yytext); return ELSE;           }
+"nop"	     	{ printf("nop        : %s\n",yytext); yylval.str = strdup(yytext); return NOP;            }
+"while"	    	{ printf("while      : %s\n",yytext); yylval.str = strdup(yytext); return WHILE;          }
+"return"    	{ printf("return     : %s\n",yytext); yylval.str = strdup(yytext); return RETURN;         }
+"print"	    	{ printf("print      : %s\n",yytext); yylval.str = strdup(yytext); return PRINT;          }
+"in"            { printf("in         : %s\n",yytext); yylval.str = strdup(yytext); return IN;             }
+"for"           { printf("for        : %s\n",yytext); yylval.str = strdup(yytext); return FOR;            }
+"["		    	{ printf("[          : %s\n",yytext); yylval.str = strdup(yytext); return LSBRACKET;      }
+"]"		     	{ printf("]          : %s\n",yytext); yylval.str = strdup(yytext); return RSBRACKET;      }
 
-{Delimiter}		{ printf("%s\n",yytext); yylval.str = strdup(yytext); return yytext[0];      }
-{Identifier}	{ printf("%s\n",yytext); yylval.str = strdup(yytext); return ID;             }
-{Integer}	    { printf("%s\n",yytext); yylval.int_value = atoi(yytext); return INTEGERNUM; }
-{Float}		    { printf("%s\n",yytext); yylval.float_value = atof(yytext); return FLOATNUM; }
+{Delimiter}		{ printf("Delimiter  : %s\n",yytext); yylval.str = strdup(yytext); return yytext[0];      }
+{Identifier}	{ printf("Identifier : %s\n",yytext); yylval.str = strdup(yytext); return ID;             }
+{Integer}	    { printf("Integer    : %s\n",yytext); yylval.int_value = atoi(yytext); return INTEGERNUM; }
+{Float}		    { printf("Float      : %s\n",yytext); yylval.float_value = atof(yytext); return FLOATNUM; }
 {Whitespace}	;
 {Comment}	    ;
 .               yyerror("Undefined character");

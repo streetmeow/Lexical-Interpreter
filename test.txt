@@ -1,28 +1,40 @@
 mainprog foo;
 int[10] arr1, arr2;
-int a;
+double c;                   //error undefined type
+int a;              
+int a;                      //error already initialized
 float[15] arr3;
-float b, c;
+int b;
+int k;
+float qq;
 
-function f1 ( d : int; e : float) : float;
+function f1 ( d : int; e1,e2 : float) : float;
 int[11] f, g;
 float h;
 begin
-    var1[12*var2!=i(32)] = 51; 
-    print(12*13);
-    j();
+    a = 512;
+    k = 123;
+    b = 17;
+    print(12*13) ;
+    j(1.3);
     begin
-        if k >= l : m = 12
-        elif n < o : print
-        else : p / q;
-        while 1 : r = 3;
-        for 1.2 > 1.1 in s : return 1;
-        nop
-    end;
+        if b >= k : a = 12
+        elif b == k : print
+        elif a <= k : nop
+        elif a <= k : nop
+        elif a <= k : nop
+        elif a <= k : nop
+        elif a <= k : nop
+        else : a / k + 2;
+        while 1 : return b - 3;
+        for 1.2 != 1.1 in 3*2 : print(1.47)
+    end
 end
 
-procedure p1;
-float[33] t,u;
+
+procedure p1 ;
+float[33] u;
+int t;
 begin
 t = 32
 end

@@ -1,4 +1,4 @@
-typedef enum varEnum {intType, floatType, voidType, arrayIntType, arrayFloatType} varEnum;
+typedef enum varEnum {intType, floatType, voidType, arrayIntType, arrayFloatType,undefinedType} varEnum;
 
 typedef struct Func {
   char* name;
@@ -8,14 +8,16 @@ typedef struct Func {
   struct Func* previous;
 } func;
 
-typedef struct Var { 
+typedef struct Var {
 	varEnum type;
 	char* name;
-	int setCount; 
+	int setCount;
 	int scopeLevel;
-	func* masterFunc;
+	func* masterFunc; 
 	struct Var* previous;
 	struct Var* next;
-	int int_value;
-	double float_value;
+	union {
+		int int_value;
+		double float_value;
+	};
 } var;
