@@ -194,7 +194,7 @@ statement: variable '=' expression
            temp = searchVar($1);
            if (temp != NULL) {
              if (temp->type == int type) {
-               if (checkFloat($3)==0) {
+               if (checkFloat($3)==false) {
                  setInt(v,(int)$3);
                }
                else {
