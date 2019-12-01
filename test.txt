@@ -1,0 +1,32 @@
+mainprog foo;
+int[10] arr1, arr2;
+int a;
+float[15] arr3;
+float b, c;
+
+function f1 ( d : int; e : float) : float;
+int[11] f, g;
+float h;
+begin
+    var1[12*var2!=i(32)] = 51; 
+    print(12*13);
+    j();
+    begin
+        if k >= l : m = 12
+        elif n < o : print
+        else : p / q;
+        while 1 : r = 3;
+        for 1.2 > 1.1 in s : return 1;
+        nop
+    end;
+end
+
+procedure p1;
+float[33] t,u;
+begin
+t = 32
+end
+
+begin
+nop
+end

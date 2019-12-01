@@ -2,37 +2,8 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
-    //#include "mPL.h"
-
-    typedef enum VarEnum {
-      intType,
-      floatType,
-      voidType,
-      arrayIntType,
-      arrayFloatType
-    } varEnum;
-
-    typedef struct Func {
-      char* name;
-      varEnum returnType;
-      varEnum parameter[50];
-      int paramCount;
-      struct Func* previous;
-    } func;
-
-    typedef struct Var {
-      varEnum type;
-      char* name;
-      int setCount;
-      int scopeLevel;
-      func* masterFunc;
-      struct Var* previous;
-      struct Var* next;
-      union {
-        int int_value;
-        double float_value;
-      };
-    } var;
+    #include <stdbool.h>
+    #include "mPL.h"
 
     int yylex();
     void yyerror(const char *s);
@@ -103,46 +74,47 @@ program: MAINPROG ID ';' declarations subprogram_declarations compound_statement
        ;
 
 declarations: type identifier_list ';' declarations
-            {
-            if(searchVar($2) == NULL)
-            {
-                var * newVal = (var*)malloc(sizeof(var));
-                newVal->name = $2;
-                if (front == NULL) {
-                  front = (var*)malloc(sizeof(var));
-                  front->next = newVal;
-                  front->name = "";
-                }
-                else {
-                  var * curr = front;
-                  while(curr->next != NULL)
-                    curr = curr->next;
-                  curr->next = newVal;
-                }
+              {
+                if(searchVar($2) == NULL)
+                {
+                    var * newVal = (var*)malloc(sizeof(var));
+                    newVal->name = $2;
+                    if (front == NULL) {
+                      front = (var*)malloc(sizeof(var));
+                      front->next = newVal;
+                      front->name = "";
+                    }
+                    else {
+                      var * curr = front;
+                      while(curr->next != NULL)
+                        curr = curr->next;
+                      curr->next = newVal;
+                    }
 
-                if($1==intType)
-                {
-                  newVal->type = intType;
-                }else if($1==floatType)
-                {
-                  newVal->type = floatType;
-                }else if($1==arrayIntType)
-                {
-                  newVal->type = arrayIntType;
-                }else if($1== arrayFloatType)
-                {
-                  newVal->type = arrayFloatType;
+                    if($1==intType)
+                    {
+                      newVal->type = intType;
+                    }else if($1==floatType)
+                    {
+                      newVal->type = floatType;
+                    }else if($1==arrayIntType)
+                    {
+                      newVal->type = arrayIntType;
+                    }else if($1== arrayFloatType)
+                    {
+                      newVal->type = arrayFloatType;
+                    }
+                    else
+                    {
+                    free(newVal);
+                    yyerror("Undefined type");
+                    }
+                } else {
+                  yyerror("Already Exist");
                 }
-                else
-                {
-                 free(newVal);
-                 yyerror("Undefined type");
-                }
-            } else {
-              yyerror("Already Exist");
             }
-          }
-          | ;
+           | 
+           ;
 
 identifier_list: ID
                | ID ',' identifier_list
@@ -241,26 +213,26 @@ for_statement: FOR expression IN expression ':' statement
 
 //print_statement: PRINT {printf("\n");};
 print_statement: PRINT
-               {
-                 printf("\n");
-               }
+                  {
+                    printf("\n");
+                  }
                | PRINT '(' expression ')'
-               {
-                 printf("%f\n", $3);
-               }
+                  {
+                    printf("%f\n", $3);
+                  }
                | PRINT '(' variable ')'
-               {
-                 var* temp;
-                 if ((temp = searchVar($3)) != NULL) {
-                   if (temp->type == intType) {
-                     printf("%d\n", temp->int_value);
-                   } else if (temp->type == floatType) {
-                     printf("%f\n", temp->float_value);
-                   }
-                 } else {
-                   yyerror("undefined variable");
-                 }
-               } ;
+                {
+                  var* temp;
+                  if ((temp = searchVar($3)) != NULL) {
+                    if (temp->type == intType) {
+                      printf("%d\n", temp->int_value);
+                    } else if (temp->type == floatType) {
+                      printf("%f\n", temp->float_value);
+                    }
+                  } else {
+                    yyerror("undefined variable");
+                  }
+                } ;
 
 variable: ID {$$ = $1;}
 
@@ -284,19 +256,19 @@ expression: simple_expression
             if ($2 == '<') {
               $$ = $1 < $3;
             }
-            else if ($2 == '<=') {
+            else if ($2 == LE) {
               $$ = $1 <= $3;
             }
             else if ($2 == '>') {
               $$ = $1 > $3;
             }
-            else if ($2 == '>=') {
+            else if ($2 == GE) {
               $$ = $1 >= $3;
             }
-            else if ($2 == '==') {
+            else if ($2 == EQ) {
               $$ = $1 == $3;
             }
-            else if ($2 == '!=') {
+            else if ($2 == NE) {
               $$ = $1 != $3;
             }
           }
@@ -304,16 +276,12 @@ expression: simple_expression
 
 simple_expression: term {$$ = $1;}
                  | term addop simple_expression
-                 {
-                   if($2 == '+')
-                     $$ = $1 + $3;
-                   else
-                     $$ = $1 - $3;
-                 }
-                 | '(' simple_expression ')'
-                 {
-                   $$ = $2;
-                 }
+                  {
+                    if($2 == '+')
+                      $$ = $1 + $3;
+                    else
+                      $$ = $1 - $3;
+                  }
                  ;
 
 term: factor {$$ = $1;} ;
@@ -327,10 +295,6 @@ term: factor {$$ = $1;} ;
         else
           $$ = $1 / $3;
       }
-    }
-    | '(' term ')'
-    {
-      $$ = $2;
     }
     ;
 
@@ -515,5 +479,6 @@ void yyerror_variable(const char *s, char* _name)
 bool checkFloat(float val) {
   float ran;
   ran = val - (int)val;
-  if (ran == 0.0f) return false; else return true;
+  if (ran == 0.0f) return false; 
+  else return true;
 }
