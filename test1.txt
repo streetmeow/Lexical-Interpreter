@@ -1,0 +1,13 @@
+mainprog foooo;
+
+float b;
+double c;                
+int a;              
+int a;                   
+
+function f1 ( d : int; e : float) : float;
+begin
+    a = 3.7;
+    b= 1;
+    nop
+end

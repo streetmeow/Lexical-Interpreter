@@ -25,7 +25,7 @@ Whitespace [ \t\n]+
 ">="	    	{ printf(">=         : %s\n",yytext); yylval.str = strdup(yytext); return GE;             }
 "<="	    	{ printf("<=         : %s\n",yytext); yylval.str = strdup(yytext); return LE;             }
 "=="	    	{ printf("==         : %s\n",yytext); yylval.str = strdup(yytext); return EQ;             }
-"!="	    	{ printf("!=         : %s\n",yytext); yylval.str = strdup(yytext); return NEQ;            }
+"!="	    	{ printf("!=         : %s\n",yytext); yylval.str = strdup(yytext); return NE;            }
 "!"		    	{ printf("!          : %s\n",yytext); yylval.str = strdup(yytext); return NOT;            }      
 "mainprog"  	{ printf("mainprog   : %s\n",yytext); yylval.str = strdup(yytext); return MAINPROG;       }
 "function"  	{ printf("function   : %s\n",yytext); yylval.str = strdup(yytext); return FUNCTION;       }

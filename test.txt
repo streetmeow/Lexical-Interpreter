@@ -1,15 +1,13 @@
 mainprog foo;
-int[10] arr1, arr2;
-double c;                   //error undefined type
+int[10] arr1;
 int a;              
-int a;                      //error already initialized
 float[15] arr3;
 int b;
 int k;
 float qq;
 
 function f1 ( d : int; e1,e2 : float) : float;
-int[11] f, g;
+int[11] f;
 float h;
 begin
     a = 512;
@@ -20,9 +18,6 @@ begin
     begin
         if b >= k : a = 12
         elif b == k : print
-        elif a <= k : nop
-        elif a <= k : nop
-        elif a <= k : nop
         elif a <= k : nop
         elif a <= k : nop
         else : a / k + 2;

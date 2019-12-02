@@ -61,7 +61,7 @@
 	  var*    back       = NULL;
 
     func*   curFunc    = NULL;
-    func*   funcTop   = NULL;
+    func*   funcTop    = NULL;
 	  func*   myFunc     = NULL;
 
     int     paramCount = 0;
@@ -88,11 +88,11 @@
 %token <float_value> FLOATNUM
 %token INT FLOAT
 %token MAINPROG FUNCTION PROCEDURE _BEGIN END IF ELIF ELSE NOP WHILE RETURN PRINT IN FOR 
-%token GE LE EQ NEQ NOT // >= <= == != !
+%token GE LE EQ NE NOT // >= <= == != !
 %token LSBRACKET RSBRACKET // [ ]
 
 %start program
-%left GE LE EQ NEQ '>' '<' '+' '-' '*' '/'
+%left GE LE EQ NE '>' '<' '+' '-' '*' '/'
 %right '='
 %nonassoc UMINUS
 
@@ -233,7 +233,7 @@ print_statement: PRINT
                  }
                | PRINT '(' expression ')'
                  {
-                   printf("Printing : \n", $3);
+                   printf("Printing : %f\n", $3);
                  }
                | PRINT '(' variable ')'
                  {
@@ -271,7 +271,7 @@ expression_list: expression
                | expression ',' expression_list
                ;
 
-expression: simple_expression
+expression: simple_expression {$$ = $1;}
           | simple_expression relop simple_expression
            {
              if ($2 == '<') 
@@ -294,7 +294,7 @@ expression: simple_expression
              {
                $$ = $1 == $3;
              }
-             else if ($2 == NEQ) 
+             else if ($2 == NE) 
              {
                $$ = $1 != $3;
              }
@@ -355,7 +355,7 @@ relop: '>' {$$ = '>';}
 	   | '<' {$$ = '<';}
 	   | LE  {$$ = LE; }
 	   | EQ  {$$ = EQ; }
-	   | NEQ  {$$ = NEQ; }
+	   | NE  {$$ = NE; }
 	   ;
 
 addop: '+' {$$ = '+';}
@@ -405,6 +405,7 @@ func* initFunction(char* name)
   function->prev = funcTop;
   funcTop = function;
   myFunc = function;
+  printf("successfully added function : %s\n",function->name);
   return function;
 }
 func* findFunction (char* name) 
@@ -532,7 +533,6 @@ float getFloat(var* varPtr)
 	else
 	{
 		yyerror_variable("Uninitialized variable" , varPtr->name);
-
 		return 0;
 	}
 }
